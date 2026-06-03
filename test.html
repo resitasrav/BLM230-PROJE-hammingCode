@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Senaryoları – Hamming Code BLM230</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Test sayfasına özgü ek stiller */
+        .test-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
+        .test-card  { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+        .test-card h3 { font-size: .9rem; font-weight: 700; margin-bottom: .5rem; color: var(--primary); }
+        .test-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: .4px; }
+        .test-value { font-family: monospace; font-size: .88rem; font-weight: 700; word-break: break-all; }
+        .test-row   { display: flex; justify-content: space-between; gap: .5rem; padding: .2rem 0; border-bottom: 1px solid var(--border); }
+        .test-row:last-child { border-bottom: none; }
+        .tag        { padding: .15rem .5rem; border-radius: 10px; font-size: .7rem; font-weight: 700; }
+        .tag-pass   { background: #d1fae5; color: #065f46; }
+        .tag-fail   { background: #fee2e2; color: #991b1b; }
+        .run-btn    { margin-top: .6rem; width: 100%; }
+        .result-area { margin-top: .5rem; font-size: .78rem; font-family: monospace; background: var(--bg); border-radius: 4px; padding: .4rem .6rem; min-height: 40px; color: var(--text-muted); }
+        .result-area.ok  { color: #065f46; background: #d1fae5; }
+        .result-area.err { color: #991b1b; background: #fee2e2; }
+        .summary { display: flex; gap: .75rem; align-items: center; }
+        .summary-badge { padding: .3rem .8rem; border-radius: 14px; font-weight: 700; font-size: .85rem; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <h1>🧪 Test Senaryoları</h1>
+        <p>BLM230 Bilgisayar Mimarisi – Hamming Code</p>
+        <a href="index.html" style="color:#fff;text-decoration:none;font-size:.85rem;background:rgba(255,255,255,.15);padding:.4rem .9rem;border-radius:20px;border:1px solid rgba(255,255,255,.3)">← Simülatöre Dön</a>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- ── Özet ── -->
+    <section class="card" style="margin-bottom:1.25rem">
+        <h2>📊 Test Özeti</h2>
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+            <button id="runAllBtn" class="btn btn-primary">▶ Tüm Testleri Çalıştır</button>
+            <div class="summary">
+                <span class="summary-badge" id="passCount" style="background:#d1fae5;color:#065f46">✓ 0 Başarılı</span>
+                <span class="summary-badge" id="failCount" style="background:#fee2e2;color:#991b1b">✗ 0 Başarısız</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Test Kartları ── -->
+    <div class="test-grid" id="testGrid"></div>
+
+</main>
+
+<footer>
+    <p>BLM230 Bilgisayar Mimarisi – Hamming Code Test Senaryoları</p>
+    <p>Bursa Teknik Üniversitesi &nbsp;|&nbsp; 2025</p>
+</footer>
+
+<script src="hamming.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════
+   Test Veri Seti
+   ════════════════════════════════════════════════════════════ */
+const TEST_CASES = [
+    {
+        id: 'TC-01',
+        name: '8-bit: Hata Yok',
+        description: '8 bitlik veri encode edilir, hata inject edilmez. Sendrom sıfır olmalı.',
+        input: '10110101',
+        bitLength: 8,
+        injectPos: null,
+        expectSyndrome: 0,
+        expectError: false
+    },
+    {
+        id: 'TC-02',
+        name: '8-bit: Pozisyon 3 Hata',
+        description: 'Encode sonrası pozisyon 3 flip edilir. Sendrom 3 döndürmeli.',
+        input: '10110101',
+        bitLength: 8,
+        injectPos: 3,
+        expectSyndrome: 3,
+        expectError: true
+    },
+    {
+        id: 'TC-03',
+        name: '8-bit: Parity Bit Hatası (Pozisyon 1)',
+        description: 'Pozisyon 1 (P1) flip edilir. Sendrom 1 döndürmeli.',
+        input: '11001100',
+        bitLength: 8,
+        injectPos: 1,
+        expectSyndrome: 1,
+        expectError: true
+    },
+    {
+        id: 'TC-04',
+        name: '8-bit: Parity Bit Hatası (Pozisyon 4)',
+        description: 'Pozisyon 4 (P4) flip edilir. Sendrom 4 döndürmeli.',
+        input: '11001100',
+        bitLength: 8,
+        injectPos: 4,
+        expectSyndrome: 4,
+        expectError: true
+    },
+    {
+        id: 'TC-05',
+        name: '8-bit: Son bit hatası',
+        description: 'Pozisyon 12 (son data biti) flip edilir. Sendrom 12 döndürmeli.',
+        input: '10101010',
+        bitLength: 8,
+        injectPos: 12,
+        expectSyndrome: 12,
+        expectError: true
+    },
+    {
+        id: 'TC-06',
+        name: '8-bit: Tüm sıfırlar',
+        description: '0x00 verisi encode edilir. Tüm parity bitleri 0 olmalı.',
+        input: '00000000',
+        bitLength: 8,
+        injectPos: null,
+        expectSyndrome: 0,
+        expectError: false
+    },
+    {
+        id: 'TC-07',
+        name: '8-bit: Tüm birler',
+        description: '0xFF verisi encode edilip sıfır hatayla okunur.',
+        input: '11111111',
+        bitLength: 8,
+        injectPos: null,
+        expectSyndrome: 0,
+        expectError: false
+    },
+    {
+        id: 'TC-08',
+        name: '16-bit: Hata Yok',
+        description: '16 bitlik veri encode edilir, hata inject edilmez.',
+        input: '1010110010110101',
+        bitLength: 16,
+        injectPos: null,
+        expectSyndrome: 0,
+        expectError: false
+    },
+    {
+        id: 'TC-09',
+        name: '16-bit: Pozisyon 7 Hata',
+        description: '16 bitlik veride pozisyon 7 flip edilir.',
+        input: '1010110010110101',
+        bitLength: 16,
+        injectPos: 7,
+        expectSyndrome: 7,
+        expectError: true
+    },
+    {
+        id: 'TC-10',
+        name: '16-bit: Parity bit P2 hatası',
+        description: 'Pozisyon 2 flip edilir. Sendrom 2 döndürmeli.',
+        input: '0011001100110011',
+        bitLength: 16,
+        injectPos: 2,
+        expectSyndrome: 2,
+        expectError: true
+    },
+    {
+        id: 'TC-11',
+        name: '32-bit: Hata Yok',
+        description: '32 bitlik veri encode edilip hatasız okunur.',
+        input: '10101010111100001111000010110101',
+        bitLength: 32,
+        injectPos: null,
+        expectSyndrome: 0,
+        expectError: false
+    },
+    {
+        id: 'TC-12',
+        name: '32-bit: Pozisyon 15 Hata',
+        description: '32 bitlik veride pozisyon 15 flip edilir.',
+        input: '10101010111100001111000010110101',
+        bitLength: 32,
+        injectPos: 15,
+        expectSyndrome: 15,
+        expectError: true
+    },
+    {
+        id: 'TC-13',
+        name: '32-bit: Parity bit P16 hatası',
+        description: 'Pozisyon 16 (P16) flip edilir. Sendrom 16 döndürmeli.',
+        input: '11110000111100001111000011110000',
+        bitLength: 32,
+        injectPos: 16,
+        expectSyndrome: 16,
+        expectError: true
+    },
+    {
+        id: 'TC-14',
+        name: '8-bit: Düzeltme Doğruluğu',
+        description: 'Hata inject edilip düzeltme sonrası orijinal veri geri elde edilmeli.',
+        input: '10110101',
+        bitLength: 8,
+        injectPos: 6,
+        expectSyndrome: 6,
+        expectError: true,
+        checkCorrection: true  // düzeltme sonrası orijinal veri kontrol edilir
+    },
+    {
+        id: 'TC-15',
+        name: '16-bit: Düzeltme Doğruluğu',
+        description: '16-bit veride hata inject edilip düzeltme sonrası orijinal veri geri elde edilmeli.',
+        input: '1100110010101010',
+        bitLength: 16,
+        injectPos: 11,
+        expectSyndrome: 11,
+        expectError: true,
+        checkCorrection: true
+    }
+];
+
+/* ════════════════════════════════════════════════════════════
+   Test Çalıştırıcı
+   ════════════════════════════════════════════════════════════ */
+function runTest(tc) {
+    try {
+        // 1. Encode
+        const encResult = HammingCode.encode(tc.input);
+
+        // 2. Hata inject (varsa)
+        let workCode = encResult.encoded;
+        if (tc.injectPos !== null) {
+            workCode = HammingCode.injectError(workCode, tc.injectPos);
+        }
+
+        // 3. Sendrom hesapla
+        const synResult = HammingCode.calculateSyndrome(workCode);
+
+        // 4. Kontroller
+        const synOk = synResult.syndrome === tc.expectSyndrome;
+        const errOk = synResult.hasError  === tc.expectError;
+
+        let corrOk = true;
+        let corrMsg = '';
+        if (tc.checkCorrection && synResult.hasError) {
+            const corrected    = HammingCode.correctError(workCode, synResult.errorPosition);
+            const correctedData = HammingCode.extractData(corrected);
+            corrOk  = correctedData === tc.input;
+            corrMsg = corrOk
+                ? `\nDüzeltme ✓: "${correctedData}" == "${tc.input}"`
+                : `\nDüzeltme ✗: "${correctedData}" != "${tc.input}"`;
+        }
+
+        const pass = synOk && errOk && corrOk;
+
+        return {
+            pass,
+            syndrome:      synResult.syndrome,
+            hasError:      synResult.hasError,
+            encoded:       encResult.encoded,
+            faultyCode:    tc.injectPos ? workCode : null,
+            details:       [
+                `Encode: ${encResult.encoded}`,
+                tc.injectPos ? `Hatalı: ${workCode} (pos ${tc.injectPos})` : 'Hata inject edilmedi',
+                `Sendrom: ${synResult.syndrome} (beklenen: ${tc.expectSyndrome}) ${synOk ? '✓' : '✗'}`,
+                `hasError: ${synResult.hasError} (beklenen: ${tc.expectError}) ${errOk ? '✓' : '✗'}`,
+                corrMsg
+            ].filter(Boolean).join('\n')
+        };
+    } catch (e) {
+        return { pass: false, details: 'HATA: ' + e.message };
+    }
+}
+
+/* ════════════════════════════════════════════════════════════
+   Render
+   ════════════════════════════════════════════════════════════ */
+function renderTestCards() {
+    const grid = document.getElementById('testGrid');
+    grid.innerHTML = TEST_CASES.map(tc => `
+        <div class="test-card" id="card-${tc.id}">
+            <h3>${tc.id}: ${tc.name}</h3>
+            <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:.6rem">${tc.description}</p>
+            <div class="test-row">
+                <span class="test-label">Giriş</span>
+                <span class="test-value">${tc.input}</span>
+            </div>
+            <div class="test-row">
+                <span class="test-label">Bit Uzunluğu</span>
+                <span class="test-value">${tc.bitLength}</span>
+            </div>
+            <div class="test-row">
+                <span class="test-label">Hata Pozisyonu</span>
+                <span class="test-value">${tc.injectPos ?? '—'}</span>
+            </div>
+            <div class="test-row">
+                <span class="test-label">Beklenen Sendrom</span>
+                <span class="test-value">${tc.expectSyndrome}</span>
+            </div>
+            <button class="btn btn-primary btn-sm run-btn" onclick="runSingle('${tc.id}')">▶ Testi Çalıştır</button>
+            <div class="result-area" id="result-${tc.id}">—</div>
+        </div>
+    `).join('');
+}
+
+function runSingle(id) {
+    const tc  = TEST_CASES.find(t => t.id === id);
+    const res = runTest(tc);
+    const el  = document.getElementById(`result-${id}`);
+    el.className = `result-area ${res.pass ? 'ok' : 'err'}`;
+    el.textContent = (res.pass ? '✓ BAŞARILI\n' : '✗ BAŞARISIZ\n') + res.details;
+
+    // Kart kenarlık rengi
+    const card = document.getElementById(`card-${id}`);
+    card.style.borderColor = res.pass ? '#059669' : '#dc2626';
+
+    updateSummary();
+}
+
+function runAll() {
+    TEST_CASES.forEach(tc => runSingle(tc.id));
+}
+
+function updateSummary() {
+    const results = TEST_CASES.map(tc => {
+        const el = document.getElementById(`result-${tc.id}`);
+        return el.classList.contains('ok');
+    });
+    const pass = results.filter(Boolean).length;
+    const fail = results.length - pass;
+    document.getElementById('passCount').textContent = `✓ ${pass} Başarılı`;
+    document.getElementById('failCount').textContent = `✗ ${fail} Başarısız`;
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', () => {
+    renderTestCards();
+    document.getElementById('runAllBtn').addEventListener('click', runAll);
+
+    // Koyu mod
+    const btn = document.getElementById('darkModeToggle');
+    if (btn) {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            btn.textContent = '☀ Açık Mod';
+        }
+        btn.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            btn.textContent = isDark ? '🌙 Koyu Mod' : '☀ Açık Mod';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        });
+    }
+});
+</script>
+</body>
+</html>
