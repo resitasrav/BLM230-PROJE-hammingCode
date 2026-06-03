@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamming Code Simülatörü – BLM230</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════ Header ══════════════════════════════ -->
+<header>
+    <div class="header-content">
+        <h1>⚙ Hamming Code Simülatörü</h1>
+        <p>BLM230 Bilgisayar Mimarisi &nbsp;|&nbsp; SEC – Single Error Correction</p>
+        <button id="darkModeToggle">🌙 Koyu Mod</button>
+    </div>
+</header>
+
+<!-- ══════════════════════════════ Main ══════════════════════════════ -->
+<main class="container">
+
+    <!-- ── Process Flow Diyagramı ── -->
+    <section class="card process-flow" aria-label="Süreç akışı">
+        <div class="flow-step" id="flow-input">
+            <span class="flow-icon">📥</span>Data In
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" id="flow-encoder">
+            <span class="flow-icon">⚙</span>f (Encoder)
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" id="flow-memory">
+            <span class="flow-icon">💾</span>Memory
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" id="flow-error">
+            <span class="flow-icon">⚡</span>Error Inject
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" id="flow-compare">
+            <span class="flow-icon">🔍</span>Compare
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" id="flow-corrector">
+            <span class="flow-icon">🔧</span>Corrector
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" id="flow-output">
+            <span class="flow-icon">📤</span>Data Out
+        </div>
+    </section>
+
+    <!-- ══ Ana 2-Sütun Grid ══ -->
+    <div class="main-grid">
+
+        <!-- ────────────────── 1. Veri Girişi ────────────────── -->
+        <section class="card" id="input-section">
+            <h2>📥 1. Veri Girişi</h2>
+
+            <!-- Bit uzunluğu -->
+            <div class="input-group">
+                <label>Bit Uzunluğu</label>
+                <div class="bit-selector">
+                    <button class="bit-btn active" data-bits="8">8-bit</button>
+                    <button class="bit-btn"        data-bits="16">16-bit</button>
+                    <button class="bit-btn"        data-bits="32">32-bit</button>
+                </div>
+            </div>
+
+            <!-- Format -->
+            <div class="input-group">
+                <label>Giriş Formatı</label>
+                <div class="format-selector">
+                    <button class="fmt-btn active" data-fmt="binary">Binary</button>
+                    <button class="fmt-btn"        data-fmt="decimal">Decimal</button>
+                    <button class="fmt-btn"        data-fmt="hex">Hex</button>
+                </div>
+            </div>
+
+            <!-- Veri -->
+            <div class="input-group">
+                <label for="dataInput">Veri</label>
+                <input type="text" id="dataInput" placeholder="00000000"
+                       maxlength="32" autocomplete="off" spellcheck="false">
+                <span id="inputHint" class="hint">8 adet bit (0 ve 1)</span>
+            </div>
+
+            <!-- Butonlar -->
+            <div class="button-group">
+                <button id="encodeBtn"  class="btn btn-primary"   disabled>⚙ Encode Et</button>
+                <button id="writeMemBtn" class="btn btn-secondary" disabled>💾 Belleğe Yaz</button>
+                <button id="randomBtn"  class="btn btn-outline">🎲 Rastgele</button>
+            </div>
+
+            <!-- Encoding Sonucu -->
+            <div id="encodeResult" class="result-box hidden">
+                <h3>Encoding Sonucu</h3>
+                <div class="info-row">
+                    <span>Veri uzunluğu (M)</span>
+                    <span id="dataLenDisplay">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Parity bit sayısı (K)</span>
+                    <span id="parityCountDisplay">—</span>
+                </div>
+                <div class="info-row">
+                    <span>Toplam uzunluk (M+K)</span>
+                    <span id="totalLenDisplay">—</span>
+                </div>
+                <div class="bit-display" id="encodedBitDisplay"></div>
+                <div class="legend">
+                    <span class="legend-item data-bit">Veri Biti</span>
+                    <span class="legend-item parity-bit">Parity Biti</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ────────────────── 2. Bellek ────────────────── -->
+        <section class="card" id="memory-section">
+            <h2>💾 2. Bellek Simülasyonu</h2>
+
+            <div class="memory-header">
+                <span>Adres</span>
+                <span>Uzunluk</span>
+                <span>Hamming Kodu</span>
+                <span>Saat</span>
+            </div>
+
+            <div id="memoryGrid">
+                <div class="memory-empty">Henüz veri yok</div>
+            </div>
+
+            <button id="clearMemBtn" class="btn btn-outline btn-sm">🗑 Belleği Temizle</button>
+        </section>
+
+        <!-- ────────────────── 3. Hata Ekleme ────────────────── -->
+        <section class="card" id="error-section">
+            <h2>⚡ 3. Hata Ekleme (Error Injection)</h2>
+            <p class="section-desc">
+                Bellekteki bir hücreyi seçip istediğiniz bit pozisyonunu flip edin.
+            </p>
+
+            <div id="selectedSlotInfo" class="slot-info hidden">
+                <span>Seçili hücre:</span>
+                <span id="selectedSlotAddress">—</span>
+            </div>
+
+            <div class="input-group">
+                <label for="errorPos">Hata Pozisyonu (1-indexed)</label>
+                <input type="number" id="errorPos" min="1" placeholder="ör. 3">
+                <span id="errorPosHint" class="hint">Toplam pozisyon: —</span>
+            </div>
+
+            <!-- Tıklanabilir bit seçici -->
+            <div id="bitSelector" class="bit-selector-grid hidden"></div>
+
+            <div class="button-group">
+                <button id="injectBtn" class="btn btn-danger">⚡ Hata Inject Et</button>
+                <button id="detectBtn" class="btn btn-warning">🔍 Sendromu Hesapla</button>
+            </div>
+        </section>
+
+        <!-- ────────────────── 4. Sonuç ────────────────── -->
+        <section class="card" id="result-section">
+            <h2>✅ 4. Sendrom &amp; Düzeltme</h2>
+
+            <div id="noResultMsg" class="no-result">
+                Sendrom hesaplamak için önce veriyi encode edip belleğe yazın,<br>
+                ardından "Sendromu Hesapla" butonuna basın.
+            </div>
+
+            <div id="syndromeDisplay" class="syndrome-box hidden">
+
+                <!-- Sendrom başlığı -->
+                <div class="syndrome-header">
+                    <h3>Sendrom: <span id="syndromeValue" class="syndrome-value">—</span></h3>
+                    <span id="syndromeStatus" class="status-badge"></span>
+                </div>
+
+                <!-- Parity check detayları -->
+                <div id="parityChecks" class="parity-checks"></div>
+
+                <!-- Hata pozisyonu -->
+                <div id="errorInfo" class="error-info hidden">
+                    <p>Hatalı bit pozisyonu: <strong id="errorPosDisplay">—</strong></p>
+                </div>
+
+                <!-- Düzeltilmiş veri -->
+                <div id="correctionResult" class="correction-result hidden">
+                    <h3>Düzeltilmiş Kod:</h3>
+                    <div class="bit-display" id="correctedBitDisplay"></div>
+                    <div style="margin-top:.75rem">
+                        <div class="data-out">
+                            <span>Data Out (binary)</span>
+                            <strong id="dataOutBinary">—</strong>
+                        </div>
+                        <div class="data-out">
+                            <span>Data Out (decimal)</span>
+                            <strong id="dataOutDecimal">—</strong>
+                        </div>
+                        <div class="data-out">
+                            <span>Data Out (hex)</span>
+                            <strong id="dataOutHex">—</strong>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div><!-- /main-grid -->
+
+    <!-- ── Bit Görselleştirme (full-width) ── -->
+    <section class="card" id="viz-section">
+        <h2>🎨 Bit Görselleştirme</h2>
+        <div id="bitVizContainer" class="bit-viz">
+            <p class="viz-empty">Veri encode edildiğinde bit haritası burada görüntülenecek.</p>
+        </div>
+        <div class="viz-legend">
+            <span class="legend-item data-bit">Veri Biti</span>
+            <span class="legend-item parity-bit">Parity Biti</span>
+            <span class="legend-item error-bit">Hatalı Bit</span>
+            <span class="legend-item corrected-bit">Düzeltilmiş Bit</span>
+        </div>
+    </section>
+
+    <!-- ── İşlem Geçmişi ── -->
+    <section class="card" id="log-section">
+        <h2>📋 İşlem Geçmişi</h2>
+        <div id="historyLog" class="history-log">
+            <div class="log-empty">İşlem geçmişi burada görüntülenir.</div>
+        </div>
+    </section>
+
+</main><!-- /container -->
+
+<!-- ══════════════════════════════ Footer ══════════════════════════════ -->
+<footer>
+    <p>BLM230 Bilgisayar Mimarisi – Hamming SEC Code Simülatörü</p>
+    <p>Bursa Teknik Üniversitesi &nbsp;|&nbsp; 2025</p>
+</footer>
+
+<!-- Scripts (sıra önemli: hamming → simulator → ui) -->
+<script src="hamming.js"></script>
+<script src="simulator.js"></script>
+<script src="ui.js"></script>
+
+</body>
+</html>
