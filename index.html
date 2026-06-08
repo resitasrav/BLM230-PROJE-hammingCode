@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hamming Code Simülatörü – BLM230</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
@@ -56,7 +56,7 @@
 
         <!-- ────────────────── 1. Veri Girişi ────────────────── -->
         <section class="card" id="input-section">
-            <h2>📥 1. Veri Girişi</h2>
+            <h2>📥 1. Veri Girişi <button type="button" class="kl-bang kl-help" data-help="veri" aria-label="Bu kısmı kod üzerinden açıkla">!</button></h2>
 
             <!-- Bit uzunluğu -->
             <div class="input-group">
@@ -101,7 +101,7 @@
                     <span id="dataLenDisplay">—</span>
                 </div>
                 <div class="info-row">
-                    <span>Parity bit sayısı (K)</span>
+                    <span>Parity bit sayısı (K) <button type="button" class="kl-bang kl-help" data-help="parity-sec" aria-label="Parity bitleri nasıl seçilir">!</button></span>
                     <span id="parityCountDisplay">—</span>
                 </div>
                 <div class="info-row">
@@ -112,13 +112,14 @@
                 <div class="legend">
                     <span class="legend-item data-bit">Veri Biti</span>
                     <span class="legend-item parity-bit">Parity Biti</span>
+                    <button type="button" class="kl-bang kl-help" data-help="parity-deger" aria-label="Parity bitinin değeri nasıl hesaplanır">!</button>
                 </div>
             </div>
         </section>
 
         <!-- ────────────────── 2. Bellek ────────────────── -->
         <section class="card" id="memory-section">
-            <h2>💾 2. Bellek Simülasyonu</h2>
+            <h2>💾 2. Bellek Simülasyonu <button type="button" class="kl-bang kl-help" data-help="bellek" aria-label="Belleğe yazma nasıl çalışır">!</button></h2>
 
             <div class="memory-header">
                 <span>Adres</span>
@@ -136,7 +137,7 @@
 
         <!-- ────────────────── 3. Hata Ekleme ────────────────── -->
         <section class="card" id="error-section">
-            <h2>⚡ 3. Hata Ekleme (Error Injection)</h2>
+            <h2>⚡ 3. Hata Ekleme (Error Injection) <button type="button" class="kl-bang kl-help" data-help="hata" aria-label="Hata ekleme nasıl çalışır">!</button></h2>
             <p class="section-desc">
                 Bellekteki bir hücreyi seçip istediğiniz bit pozisyonunu flip edin.
             </p>
@@ -163,7 +164,7 @@
 
         <!-- ────────────────── 4. Sonuç ────────────────── -->
         <section class="card" id="result-section">
-            <h2>✅ 4. Sendrom &amp; Düzeltme</h2>
+            <h2>✅ 4. Sendrom &amp; Düzeltme <button type="button" class="kl-bang kl-help" data-help="sendrom" aria-label="Sendrom nasıl hesaplanır">!</button></h2>
 
             <div id="noResultMsg" class="no-result">
                 Sendrom hesaplamak için önce veriyi encode edip belleğe yazın,<br>
@@ -188,7 +189,7 @@
 
                 <!-- Düzeltilmiş veri -->
                 <div id="correctionResult" class="correction-result hidden">
-                    <h3>Düzeltilmiş Kod:</h3>
+                    <h3>Düzeltilmiş Kod: <button type="button" class="kl-bang kl-help" data-help="duzelt" aria-label="Düzeltme nasıl yapılır">!</button></h3>
                     <div class="bit-display" id="correctedBitDisplay"></div>
                     <div style="margin-top:.75rem">
                         <div class="data-out">
@@ -234,6 +235,13 @@
 
 </main><!-- /container -->
 
+<!-- Kod Yardımı Popover -->
+<div class="kl-pop" id="klPop">
+    <div class="kl-pop-head"><span class="kl-ic">!</span><h3 id="klPopTitle"></h3></div>
+    <button class="kl-pop-close" id="klPopClose">✕</button>
+    <div class="kl-pop-body" id="klPopBody"></div>
+</div>
+
 <!-- ══════════════════════════════ Footer ══════════════════════════════ -->
 <footer>
     <p>BLM230 Bilgisayar Mimarisi – Hamming SEC Code Simülatörü</p>
@@ -241,9 +249,10 @@
 </footer>
 
 <!-- Scripts (sıra önemli: hamming → simulator → ui) -->
-<script src="hamming.js"></script>
-<script src="simulator.js"></script>
-<script src="ui.js"></script>
+<script src="js/hamming.js"></script>
+<script src="js/simulator.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/kod-yardim.js"></script>
 
 </body>
 </html>
